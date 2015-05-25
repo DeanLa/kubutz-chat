@@ -1,6 +1,7 @@
 from collections import defaultdict
 from itertools import chain
 import random
+import os,sys
 
 class MarkovChain(object):
     def __init__(self, documents, **kwargs):
@@ -49,7 +50,16 @@ class MarkovChain(object):
             tweet = self.generate_tweet()
         return tweet.strip()
 #%%
+def create_people():
+    with open('people.txt','r') as people_file:
+        people = [line for line in people_file]
+    
+    
+#%%
+    os.chdir(os.path.dirname(sys.argv[0]))
+#%%
 def main():
+    os.chdir('')
     with open('chat.txt') as f:
         text = [line for line in f]
     tweet = MarkovChain(text).generate_tweet()
