@@ -1,18 +1,6 @@
 from collections import defaultdict
 from itertools import chain
-from twython import Twython
 import random
-import re
-import sys
-
-import config
-
-twitter = Twython(
-    config.TWITTER_CONSUMER_KEY,
-    config.TWITTER_CONSUMER_SECRET,
-    config.TWITTER_ACCESS_TOKEN,
-    config.TWITTER_ACCESS_SECRET
-)
 
 class MarkovChain(object):
     def __init__(self, documents, **kwargs):
@@ -27,6 +15,7 @@ class MarkovChain(object):
         for document in documents:
             if document:
                 words.append(self.tokenize(document))
+        #Chain
         return list(chain.from_iterable(words))
     
     def tokenize(self, document):
@@ -59,12 +48,12 @@ class MarkovChain(object):
         if len(tweet) < min_chars or len(tweet) > max_chars:
             tweet = self.generate_tweet()
         return tweet.strip()
-
+#%%
 def main():
-    with open(sys.argv[1]) as f:
+    with open('chat.txt') as f:
         text = [line for line in f]
     tweet = MarkovChain(text).generate_tweet()
-    twitter.update_status(status=tweet)
+    print(tweet)
 
 if __name__ == '__main__':
     main()
