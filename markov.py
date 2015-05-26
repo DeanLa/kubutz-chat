@@ -1,10 +1,11 @@
-from collections import defaultdict
+from collections import defaultdict, deque
 from itertools import chain
 import random
 import os,sys
 
 class MarkovChain(object):
-    def __init__(self, documents, **kwargs):
+    def __init__(self, documents, num=3):
+        self.chain_length = num
         self.word_cache = defaultdict(list)
         self.words = self.documents_to_words(documents)
         self.word_size = len(self.words)
@@ -22,14 +23,16 @@ class MarkovChain(object):
     def tokenize(self, document):
         # don't want empty spaces
         words = [w.strip() for w in document.split() if w.strip() != '']
+        # Make many ???? into one ?
         return words
 
     def yield_trigrams(self):
-        if len(self.words) < 3:
+        if len(self.words) < self.chain_length:
             return
 
-        for i in range(len(self.words) - 3):
-            yield (self.words[i], self.words[i+1], self.words[i+2])
+        for i in range(len(self.words) - self.chain_length):
+            yield_chain = [self.words[i+j] for j in range(self.chain_length)]
+            yield (deque(yield_chain))
 
     def wordbase(self):
         for w1, w2, w3 in self.yield_trigrams():
@@ -53,13 +56,16 @@ class MarkovChain(object):
 def create_people():
     with open('people.txt','r') as people_file:
         people = [line for line in people_file]
+    f = open('chat.txt','r')
+    with open('result.txt','w') as out:
+        out.write(f.readline())
     
     
-#%%
-    os.chdir(os.path.dirname(sys.argv[0]))
+    
+
 #%%
 def main():
-    os.chdir('')
+    os.chdir('D:/Code/kubutz')
     with open('chat.txt') as f:
         text = [line for line in f]
     tweet = MarkovChain(text).generate_tweet()
