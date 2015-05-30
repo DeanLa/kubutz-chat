@@ -42,7 +42,7 @@ class MarkovChainText(object):
         for w,wlast in self.yield_trigrams():
             self.word_cache[w].append(wlast)
         
-    def generate_tweet(self, min_chars=10, max_chars=340):
+    def generate_tweet(self, min_chars=50, max_chars=340):
         seed = random.randint(0, len(self.words) - self.chain_length)
         w = deque([self.words[seed+j] for j in range(self.chain_length - 1)])
         tweet = '  '
@@ -78,16 +78,27 @@ class MarkovChainChat(object):
         speakers = [line.strip() for line in people]
         record = None
         for line in doc:
-            if any(name in line for name in speakers):
+#            print line            
+            if any(name in line for name in speakers):                
                 if record:
+#                    print "OK Record",record[1],"\n"
                     yield (record)
-                record = line.split(" - ",1)
-                rec1, rec2 = record[1].split(": ",1)
-                record = [record[0], rec1, rec2]
+#                    print "E\t",
+                try:
+                    record = line.split(" - ",1)
+                    rec1, rec2 = record[1].split(": ",1)
+                    record = [record[0], rec1, rec2]
+                except:
+                    record = None
+                    continue
             elif record:
+#                print "2",
                 record[2] += " {}".format(line)
             else:
-                continue         
+#                print "3",
+                continue
+#        print "4",
+        yield (record)
 
     def yield_trigrams(self):
         if len(self.speakers) < self.chain_length:
@@ -106,21 +117,23 @@ class MarkovChainChat(object):
             self.speaker_personal[rec[1]].append(rec[2])
             
     def generate_speak(self, chat_windows = 1):
-        print self.speakers        
-        print 'OK'
+        '''Takes Number of people and creates a chat between them'''
+        #TODO: Make this robust. Currently only fits 1 speaker
         speaker = random.choice(self.speakers)
-        print speaker
+        print "\n", speaker
         return "{}: {}".format(speaker,
             MarkovChainText(self.speaker_personal[speaker]).generate_tweet())
         
 #%%
 def main():
     os.chdir('D:/Code/kubutz')
-    doc       = open('Chat.txt', 'r')
+    doc       = open('ChatOrigin.txt', 'r')
     people    = open('people.txt', 'r')
-    chat = MarkovChainChat(doc, people, num = 3)
+    chat = MarkovChainChat(doc, people, num = 2)
+    tweet = chat.generate_speak()
     with open ('tweet.txt','w') as outfile:
-        outfile.write("{}\n\n".format(chat.generate_speak()))
+        outfile.write("{}\n\n".format(tweet))
+        print tweet
     doc.close()
     people.close()
 
