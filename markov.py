@@ -43,7 +43,7 @@ class MarkovChainText(object):
         for w,wlast in self.yield_trigrams():
             self.word_cache[w].append(wlast)
         
-    def generate_tweet(self, min_chars=100, max_chars=340):
+    def generate_tweet(self, min_chars=10, max_chars=340):
         seed = random.randint(0, len(self.words) - self.chain_length)
         w = deque([self.words[seed+j] for j in range(self.chain_length - 1)])
         tweet = '  '
@@ -107,7 +107,8 @@ class MarkovChainChat(object):
             self.speaker_personal[rec[1]].append(rec[2])
             
     def generate_speak(self, chat_windows = 1):
-        print self.speakers
+        print self.speakers        
+        print 'OK'
         speaker = random.choice(self.speakers)
         print speaker
         return "{}: {}".format(speaker,
@@ -116,10 +117,10 @@ class MarkovChainChat(object):
 #%%
 def main():
     os.chdir('D:/Code/kubutz')
-    doc       = open('ChatSmall.txt', 'r')
+    doc       = open('Chat.txt', 'r')
     people    = open('people.txt', 'r')
     chat = MarkovChainChat(doc, people, num = 3)
-    with open ('tweet.txt','a') as outfile:
+    with open ('tweet.txt','w') as outfile:
         outfile.write("{}\n\n".format(chat.generate_speak()))
     doc.close()
     people.close()
