@@ -3,6 +3,13 @@ from itertools import chain, tee
 import random
 import os,sys
 
+def reduce_double(myString="???",letter="?"): 
+    dl = letter+letter 
+    if dl not in myString:
+        return myString
+    else:
+        return reduce_double(myString.replace(dl,letter),letter)
+        
 class MarkovChainText(object):
     def __init__(self, documents, num=3):
         self.chain_length = num
@@ -20,11 +27,15 @@ class MarkovChainText(object):
         #Chain
         return list(chain.from_iterable(words))
     
+
+        
+        
     def tokenize(self, document):
         # don't want empty spaces
         words = [w.strip() for w in document.split() if w.strip() != '']
         # Make many ???? into one ?
-        
+        signs = "?ח!"        
+        words = [reduce_double(w,"?") for w in words]
         # Remove Media Ommited
         bad_words = ['<Media','omitted>']
         words = [w for w in words if w not in bad_words]
@@ -42,7 +53,7 @@ class MarkovChainText(object):
         for w,wlast in self.yield_trigrams():
             self.word_cache[w].append(wlast)
         
-    def generate_tweet(self, min_chars=50, max_chars=340):
+    def generate_tweet(self, min_chars=50, max_chars=340):      
         seed = random.randint(0, len(self.words) - self.chain_length)
         w = deque([self.words[seed+j] for j in range(self.chain_length - 1)])
         tweet = '  '
@@ -54,7 +65,7 @@ class MarkovChainText(object):
 
         # if it's too short or too long, try again
         if len(tweet) < min_chars or len(tweet) > max_chars:
-            tweet = self.generate_tweet()
+            tweet = self.generate_tweet(min_chars,max_chars)
         return tweet.strip()
         
         #%%
@@ -116,13 +127,17 @@ class MarkovChainChat(object):
         for rec in self.gen_2:
             self.speaker_personal[rec[1]].append(rec[2])
             
-    def generate_speak(self, chat_windows = 1):
+    def generate_speak(self, speaker="", chat_windows = 1):
         '''Takes Number of people and creates a chat between them'''
         #TODO: Make this robust. Currently only fits 1 speaker
-        speaker = random.choice(self.speakers)
+        if speaker in self.speakers:
+            person = speaker
+        else:
+            person = random.choice(self.speakers)
         print "\n", speaker
-        return "{}: {}".format(speaker,
-            MarkovChainText(self.speaker_personal[speaker]).generate_tweet())
+        return "{}: {}".format(person,
+            MarkovChainText(self.speaker_personal[person]).generate_tweet(
+            120,9999))
         
 #%%
 def main():
@@ -130,7 +145,7 @@ def main():
     doc       = open('ChatOrigin.txt', 'r')
     people    = open('people.txt', 'r')
     chat = MarkovChainChat(doc, people, num = 2)
-    tweet = chat.generate_speak()
+    tweet = chat.generate_speak("Nitsan Cohen")
     with open ('tweet.txt','w') as outfile:
         outfile.write("{}\n\n".format(tweet))
         print tweet
